@@ -115,6 +115,10 @@ function App() {
       <div className="ticks"></div>
       <section id="spacer"></section>
     </>
+      <footer className="app-footer">
+        <p>&copy; 2026 Inventory Management App</p>
+      </footer>
+    </div>
   )
 }
 
