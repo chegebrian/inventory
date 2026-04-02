@@ -51,5 +51,20 @@ const AdminDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
+
+          {/* implement Recharts bar chart for store performance */}
+          <div className="card">
+            <h3 className="text-lg font-semibold mb-4">Store Performance</h3>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="product_name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="quantity_received" fill="#4F46E5" name="Received" />
+                <Bar dataKey="quantity_in_stock" fill="#10B981" name="In Stock" />
+              </BarChart>
+           </ResponsiveContainer>
+          </div>
       
     </DashboardLayout>
