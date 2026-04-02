@@ -23,7 +23,17 @@ const AdminInventory = () => {
     }
   };
 
+  const togglePayment = async (entry) => {
+    const newStatus = entry.payment_status === 'paid' ? 'unpaid' : 'paid';
 
+    try {
+      await api.patch(`/inventory/${entry.id}/payment`, { payment_status: newStatus });
+      toast.success(`Marked as ${newStatus}`);
+      fetchEntries();
+    } catch {
+      toast.error('Failed to update payment status');
+    }
+  };
 
   return (
     <DashboardLayout title="Inventory Entries 📋">
