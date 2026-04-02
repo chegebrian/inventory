@@ -27,3 +27,6 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout title="Admin Dashboard 📊">
+
+      
+    </DashboardLayout>
