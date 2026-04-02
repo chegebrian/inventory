@@ -50,7 +50,7 @@ const AdminDashboard = () => {
             </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* implement Recharts bar chart for store performance */}
           <div className="card">
@@ -66,5 +66,24 @@ const AdminDashboard = () => {
               </BarChart>
            </ResponsiveContainer>
           </div>
-      
+
+          {/* add line chart for stock trends over time */}
+          <div className="card">
+            <h3 className="text-lg font-semibold mb-4">Trend Over Time</h3>
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="product_name" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="quantity_received" stroke="#4F46E5" strokeWidth={3} />
+                <Line type="monotone" dataKey="quantity_in_stock" stroke="#10B981" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>      
     </DashboardLayout>
+  );
+};
+
+export default AdminDashboard;
