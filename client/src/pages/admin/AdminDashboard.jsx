@@ -27,6 +27,29 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout title="Admin Dashboard 📊">
+        
+        {/* add summary cards for inventory metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="card">
+            <p className="text-sm text-gray-500">Total Received</p>
+            <p className="text-3xl font-bold mt-2">{summary.total_items_received || 0}</p>
+            </div>
+            <div className="card">
+            <p className="text-sm text-gray-500">In Stock</p>
+            <p className="text-3xl font-bold mt-2 text-green-600">{summary.total_items_in_stock || 0}</p>
+            </div>
+            <div className="card">
+            <p className="text-sm text-gray-500">Spoilt</p>
+            <p className="text-3xl font-bold mt-2 text-red-600">{summary.total_items_spoilt || 0}</p>
+            </div>
+            <div className="card">
+            <p className="text-sm text-gray-500">Unpaid (KES)</p>
+            <p className="text-3xl font-bold mt-2 text-orange-600">
+                {(summary.total_unpaid_amount || 0).toLocaleString()}
+            </p>
+            </div>
+        </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
       
     </DashboardLayout>
