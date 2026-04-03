@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+
+
+import React, { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { toast } from 'react-toastify';
 import api from '../../utils/api';
@@ -10,11 +12,7 @@ const ClerkMyEntries = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    fetchEntries();
-  }, [page, filter]);
-
-  const fetchEntries = async () => {
+  const fetchEntries = useCallback(async () => {
     setLoading(true);
     try {
       let url = `/inventory/my-entries?page=${page}&per_page=10`;
@@ -27,14 +25,18 @@ const ClerkMyEntries = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, filter]);
+
+  useEffect(() => {
+    fetchEntries();
+  }, [fetchEntries]);
 
   return (
     <DashboardLayout title="My Entries 📋">
       <div className="card">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">My Inventory Entries</h2>
-          
+         
           <select
             className="input-field w-full sm:w-52"
             value={filter}
@@ -80,23 +82,24 @@ const ClerkMyEntries = () => {
                       <td className="py-4 px-4">KES {parseFloat(e.selling_price || 0).toLocaleString()}</td>
                       <td className="py-4 px-4">
                         <span className={`px-4 py-1 text-xs font-medium rounded-full ${
-                          e.payment_status === 'paid' 
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
+                          e.payment_status === 'paid'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
                             : 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300'
                         }`}>
                           {e.payment_status}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-gray-400 dark:text-gray-500 text-xs">{e.recorded_at}</td>
+                      <td className="py-4 px-4 text-gray-400 dark:text-gray-500 text-xs">
+                        {new Date(e.recorded_at).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-
             {totalPages > 1 && (
               <div className="flex justify-center gap-3 mt-6">
-                <button 
+                <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
                   className="px-4 py-2 border rounded-lg disabled:opacity-50"
@@ -104,7 +107,7 @@ const ClerkMyEntries = () => {
                   ← Previous
                 </button>
                 <span className="px-4 py-2 text-sm">Page {page} of {totalPages}</span>
-                <button 
+                <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                   className="px-4 py-2 border rounded-lg disabled:opacity-50"

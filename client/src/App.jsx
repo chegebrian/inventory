@@ -8,7 +8,7 @@ function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <>
+    <div className="App">
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
@@ -114,7 +114,6 @@ function App() {
 
       <div className="ticks"></div>
       <section id="spacer"></section>
-    </>
       <footer className="app-footer">
         <p>&copy; 2026 Inventory Management App</p>
       </footer>
