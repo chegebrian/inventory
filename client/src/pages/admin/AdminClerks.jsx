@@ -41,6 +41,31 @@ const AdminClerks = () => {
     }
   };
 
+  const toggleActive = async (clerk) => {
+    try {
+      await api.patch(`/auth/users/${clerk.id}/toggle-active`);
+      toast.success(clerk.is_active ? 'Clerk suspended' : 'Clerk activated');
+      fetchClerks();
+    } catch {
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleDelete = async (clerk) => {
+    if (!window.confirm(`Delete clerk "${clerk.full_name}"?`)) return;
+
+    setDeletingId(clerk.id);
+    try {
+      await api.delete(`/auth/users/${clerk.id}`);
+      toast.success('Clerk deleted successfully');
+      fetchClerks();
+    } catch {
+      toast.error('Failed to delete clerk');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   useEffect(() => {
     fetchClerks();
   }, []);
