@@ -2,12 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-// Landing
-import LandingPage from './pages/LandingPage';
-
 // Auth Pages
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+
+// Landing Page
+import LandingPage from './pages/LandingPage';   // ← Your landing page
 
 // Clerk Pages
 import ClerkDashboard from './pages/clerk/ClerkDashboard';
@@ -21,6 +21,7 @@ import AdminProducts from './pages/admin/AdminProducts';
 import AdminInventory from './pages/admin/AdminInventory';
 import AdminSupplyRequests from './pages/admin/AdminSupplyRequests';
 import AdminClerks from './pages/admin/AdminClerks';
+import AdminReports from './pages/admin/AdminReports';
 
 // Merchant Pages
 import MerchantDashboard from './pages/merchant/MerchantDashboard';
@@ -28,12 +29,13 @@ import MerchantStores from './pages/merchant/MerchantStores';
 import MerchantAdmins from './pages/merchant/MerchantAdmins';
 import MerchantReports from './pages/merchant/MerchantReports';
 
-// ── Protected Route ──
+// Protected Route
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, token } = useSelector((state) => state.auth);
   if (!token || !user) return <Navigate to="/login" replace />;
-  if (allowedRoles && !allowedRoles.includes(user.role))
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/login" replace />;
+  }
   return children;
 };
 
@@ -41,13 +43,14 @@ function App() {
   return (
     <Router>
       <Routes>
-
-        {/* ── Public ── */}
+        {/* Landing Page (Root) */}
         <Route path="/" element={<LandingPage />} />
+
+        {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* ── Clerk Routes ── */}
+        {/* Clerk Routes */}
         <Route path="/clerk/dashboard" element={
           <ProtectedRoute allowedRoles={['clerk']}>
             <ClerkDashboard />
@@ -69,7 +72,7 @@ function App() {
           </ProtectedRoute>
         } />
 
-        {/* ── Admin Routes ── */}
+        {/* Admin Routes */}
         <Route path="/admin/dashboard" element={
           <ProtectedRoute allowedRoles={['admin']}>
             <AdminDashboard />
@@ -95,8 +98,13 @@ function App() {
             <AdminClerks />
           </ProtectedRoute>
         } />
+        <Route path="/admin/reports" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminReports />
+          </ProtectedRoute>
+        } />
 
-        {/* ── Merchant Routes ── */}
+        {/* Merchant Routes */}
         <Route path="/merchant/dashboard" element={
           <ProtectedRoute allowedRoles={['merchant']}>
             <MerchantDashboard />
@@ -117,9 +125,6 @@ function App() {
             <MerchantReports />
           </ProtectedRoute>
         } />
-
-        {/* ── Catch-all ── */}
-        <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>
     </Router>
