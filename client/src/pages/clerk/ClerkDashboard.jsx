@@ -42,35 +42,28 @@ const ClerkDashboard = () => {
 
       <div className="card">
         <h3 className="text-lg font-semibold mb-4">Recent Entries</h3>
-        {recentEntries.length === 0 ? (
-          <p className="text-center py-8 text-gray-500">No recent entries found.</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 dark:border-gray-700">
-                <th className="text-left py-4 font-medium text-gray-500">Product</th>
-                <th className="text-left py-4 font-medium text-gray-500">Quantity</th>
-                <th className="text-left py-4 font-medium text-gray-500">Payment Status</th>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left py-4">Product</th>
+              <th className="text-left py-4">Quantity</th>
+              <th className="text-left py-4">Payment Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentEntries.map(entry => (
+              <tr key={entry.id} className="border-b hover:bg-gray-50">
+                <td className="py-4">{entry.product_name}</td>
+                <td className="py-4">{entry.quantity_received}</td>
+                <td className="py-4">
+                  <span className={`px-3 py-1 text-xs rounded-full ${entry.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {entry.payment_status}
+                  </span>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {recentEntries.map(entry => (
-                <tr key={entry.id} className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                  <td className="py-4 font-medium text-gray-800 dark:text-white">{entry.product_name}</td>
-                  <td className="py-4 text-gray-600 dark:text-gray-400">{entry.quantity_received}</td>
-                  <td className="py-4">
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      entry.payment_status === 'paid' 
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                        : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
-                      {entry.payment_status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+            ))}
+          </tbody>
+        </table>
       </div>
     </DashboardLayout>
   );
