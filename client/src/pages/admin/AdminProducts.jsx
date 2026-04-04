@@ -35,6 +35,11 @@ const AdminProducts = () => {
     }
   }, []);
 
+  useEffect(() => {
+    fetchProducts();
+    fetchStores();
+  }, [fetchProducts, fetchStores]);
+
   return (
     <DashboardLayout title="Products 📦">
       <div>Admin Products</div>
