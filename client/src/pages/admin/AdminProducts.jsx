@@ -69,6 +69,16 @@ const AdminProducts = () => {
     }
   };
 
+  const getStoreName = (storeId) => {
+    const store = stores.find(s => s.id === storeId);
+    return store ? store.name : `Store #${storeId}`;
+  };
+
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   return (
     <DashboardLayout title="Products 📦">
       <div>Admin Products</div>
