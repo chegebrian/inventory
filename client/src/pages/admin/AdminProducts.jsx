@@ -102,6 +102,45 @@ const AdminProducts = () => {
               </button>
             </div>
           </div>
+
+          {showForm && (
+            <form onSubmit={handleSubmit} className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-8 space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Name *</label>
+                <input
+                  className="input-field"
+                  value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                  placeholder="e.g. Sugar 1kg"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                <input
+                  className="input-field"
+                  value={form.description}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="Optional description"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Store *</label>
+                <select
+                  className="input-field"
+                  value={form.store_id}
+                  onChange={e => setForm({ ...form, store_id: e.target.value })}
+                  required
+                >
+                  <option value="">Select store...</option>
+                  {stores.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className="btn-primary w-full sm:w-auto">Save Product</button>
+            </form>
+          )}
         </div>
       </div>
     </DashboardLayout>
