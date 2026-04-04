@@ -81,7 +81,29 @@ const AdminProducts = () => {
 
   return (
     <DashboardLayout title="Products 📦">
-      <div>Admin Products</div>
+      <div className="space-y-6">
+        <div className="card">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">All Products</h2>
+            
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="input-field flex-1"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <button 
+                onClick={() => setShowForm(!showForm)}
+                className="btn-primary whitespace-nowrap"
+              >
+                {showForm ? 'Cancel' : '+ Add Product'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 };
