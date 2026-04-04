@@ -25,7 +25,17 @@ const AdminSupplyRequests = () => {
 
   return (
     <DashboardLayout title="Supply Requests 🚚">
-      <div>Supply Requests</div>
+      <div className="card">
+        <h2 className="text-xl font-semibold mb-6">Supply Requests</h2>
+
+        {loading ? (
+          <p className="text-center py-10 text-gray-400">
+            Loading requests...
+          </p>
+        ) : (
+          <div>Table coming soon</div>
+        )}
+      </div>
     </DashboardLayout>
   );
 };
