@@ -13,6 +13,7 @@ const AdminProducts = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Memoize fetch functions to avoid exhaustive-deps warnings
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
@@ -140,6 +141,71 @@ const AdminProducts = () => {
               </div>
               <button type="submit" className="btn-primary w-full sm:w-auto">Save Product</button>
             </form>
+          )}
+
+          {loading ? (
+            <div className="text-center py-16 text-gray-400">Loading products...</div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-16 text-gray-400">
+              <p className="text-5xl mb-4">📦</p>
+              <p>No products found</p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[700px]">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-4 px-4 font-medium text-gray-500">Name</th>
+                      <th className="text-left py-4 px-4 font-medium text-gray-500">Description</th>
+                      <th className="text-left py-4 px-4 font-medium text-gray-500">Store</th>
+                      <th className="text-left py-4 px-4 font-medium text-gray-500">Created</th>
+                      <th className="text-left py-4 px-4 font-medium text-gray-500">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.map(p => (
+                      <tr key={p.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <td className="py-4 px-4 font-medium text-gray-800 dark:text-white">{p.name}</td>
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-300">{p.description || '—'}</td>
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-300 font-medium">
+                          {getStoreName(p.store_id)}
+                        </td>
+                        <td className="py-4 px-4 text-gray-400 dark:text-gray-500 text-xs">{p.created_at}</td>
+                        <td className="py-4 px-4">
+                          <button
+                            onClick={() => handleDelete(p.id, p.name)}
+                            className="text-red-500 hover:text-red-700 text-sm font-medium px-3 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex justify-center gap-3 mt-6">
+                  <button 
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                  >
+                    ← Previous
+                  </button>
+                  <span className="px-4 py-2 text-sm">Page {page} of {totalPages}</span>
+                  <button 
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
