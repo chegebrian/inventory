@@ -40,6 +40,23 @@ const AdminProducts = () => {
     fetchStores();
   }, [fetchProducts, fetchStores]);
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.store_id) {
+      return toast.error('Name and Store are required');
+    }
+
+    try {
+      await api.post('/products/', form);
+      toast.success('Product created successfully ✅');
+      setShowForm(false);
+      setForm({ name: '', description: '', store_id: '' });
+      fetchProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to create product');
+    }
+  };
+
   return (
     <DashboardLayout title="Products 📦">
       <div>Admin Products</div>
