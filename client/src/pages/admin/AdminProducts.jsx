@@ -57,6 +57,18 @@ const AdminProducts = () => {
     }
   };
 
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`Delete product "${name}"?`)) return;
+
+    try {
+      await api.delete(`/products/${id}`);
+      toast.success('Product deleted');
+      fetchProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete product');
+    }
+  };
+
   return (
     <DashboardLayout title="Products 📦">
       <div>Admin Products</div>
