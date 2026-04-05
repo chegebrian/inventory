@@ -18,7 +18,7 @@ import LandingPage from "./pages/LandingPage"; // ← Your landing page
 import ClerkDashboard from "./pages/clerk/ClerkDashboard";
 import RecordEntry from "./pages/clerk/RecordEntry";
 import ClerkMyEntries from "./pages/clerk/ClerkMyEntries";
-import ClerkSupplyRequests from "./pages/clerk/ClerkSupplyRequests";
+import ClerkSupplyRequests from "./pages/clerk/ClerkSupplyRequest";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
