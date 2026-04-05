@@ -376,7 +376,7 @@ const LandingPage = () => {
             </span>
           </div>
           <p className="lp-footer-text">
-            © 2025 StockPilot · Phase 4 Capstone Project
+            © 2026 StockPilot · Phase 4 Capstone Project
           </p>
           <div className="lp-footer-links">
             <span className="lp-footer-link" onClick={() => navigate("/login")}>
