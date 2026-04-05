@@ -1,51 +1,143 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-body {
-  margin: 0;
-  font-family:
+/* Theme Configuration */
+@theme {
+  /* Colors */
+  --color-primary: #4f46e5;
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-500: #4f46e5;
+  --color-primary-600: #4338ca;
+  --color-primary-700: #3730a3;
+
+  --color-secondary: #10b981;
+  --color-danger: #ef4444;
+
+  /* Font Family */
+  --font-sans:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
     Cantarell, sans-serif;
-  background-color: #f3f4f6;
 }
 
-.btn-primary {
-  @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 font-medium;
+/* Dark Mode Support */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Base Styles */
+@layer base {
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background-color: #f3f4f6;
+  }
 }
 
-.btn-secondary {
-  @apply bg-secondary text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all duration-200 font-medium;
+/* Component Classes */
+@layer components {
+  .btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 200ms;
+
+    &:hover {
+      background-color: var(--color-primary-600);
+    }
+  }
+
+  .btn-secondary {
+    background-color: var(--color-secondary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 200ms;
+
+    &:hover {
+      background-color: #059669;
+    }
+  }
+
+  .btn-danger {
+    background-color: var(--color-danger);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 200ms;
+
+    &:hover {
+      background-color: #dc2626;
+    }
+  }
+
+  .card {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    padding: 1.5rem;
+    border: 1px solid #f3f4f6;
+  }
+
+  .input-field {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+
+    &:focus {
+      outline: none;
+      border-color: transparent;
+      box-shadow: 0 0 0 2px var(--color-primary);
+    }
+  }
 }
 
-.btn-danger {
-  @apply bg-danger text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-200 font-medium;
-}
+/* Badge Utilities */
+@layer utilities {
+  .badge-paid {
+    background-color: #dcfce7;
+    color: #166534;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+  }
 
-.card {
-  @apply bg-white rounded-xl shadow-sm p-6 border border-gray-100;
-}
+  .badge-unpaid {
+    background-color: #fee2e2;
+    color: #991b1b;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+  }
 
-.input-field {
-  @apply w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
-}
+  .badge-pending {
+    background-color: #fef9c3;
+    color: #854d0e;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+  }
 
-.badge-paid {
-  @apply bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full;
-}
+  .badge-approved {
+    background-color: #dcfce7;
+    color: #166534;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+  }
 
-.badge-unpaid {
-  @apply bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full;
-}
-
-.badge-pending {
-  @apply bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full;
-}
-
-.badge-approved {
-  @apply bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full;
-}
-
-.badge-declined {
-  @apply bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full;
+  .badge-declined {
+    background-color: #fee2e2;
+    color: #991b1b;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+  }
 }
