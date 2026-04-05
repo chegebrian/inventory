@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import DashboardLayout from '../../components/layout/DashboardLayout';
-import { toast } from 'react-toastify';
-import api from '../../utils/api';
+import React, { useState, useEffect } from "react";
+import DashboardLayout from "../../components/layout/DashboardLayout";
+import { toast } from "react-toastify";
+import api from "../../utils/api";
 
 const MerchantAdmins = () => {
-  const [email, setEmail] = useState('');
-  const [storeId, setStoreId] = useState('');
+  const [email, setEmail] = useState("");
+  const [storeId, setStoreId] = useState("");
   const [loading, setLoading] = useState(false);
   const [admins, setAdmins] = useState([]);
   const [stores, setStores] = useState([]);
@@ -20,10 +20,10 @@ const MerchantAdmins = () => {
   const fetchAdmins = async () => {
     setFetching(true);
     try {
-      const res = await api.get('/auth/users?role=admin');
+      const res = await api.get("/auth/users?role=admin");
       setAdmins(res.data.users || []);
     } catch (err) {
-      toast.error('Failed to load admins');
+      toast.error("Failed to load admins");
     } finally {
       setFetching(false);
     }
@@ -31,7 +31,7 @@ const MerchantAdmins = () => {
 
   const fetchStores = async () => {
     try {
-      const res = await api.get('/stores/');
+      const res = await api.get("/stores/");
       setStores(res.data.stores || []);
     } catch (err) {
       console.error(err);
@@ -40,21 +40,21 @@ const MerchantAdmins = () => {
 
   const handleInviteAdmin = async (e) => {
     e.preventDefault();
-    if (!email) return toast.error('Email is required');
+    if (!email) return toast.error("Email is required");
 
     setLoading(true);
     try {
-      await api.post('/auth/invite', {
+      await api.post("/auth/invite", {
         email,
-        role: 'admin',
-        store_id: storeId ? parseInt(storeId) : null
+        role: "admin",
+        store_id: storeId ? parseInt(storeId) : null,
       });
       toast.success(`Invite sent to ${email} ✅`);
-      setEmail('');
-      setStoreId('');
+      setEmail("");
+      setStoreId("");
       fetchAdmins();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to send invite');
+      toast.error(err.response?.data?.error || "Failed to send invite");
     } finally {
       setLoading(false);
     }
@@ -62,44 +62,56 @@ const MerchantAdmins = () => {
 
   const handleToggleActive = async (admin) => {
     const newStatus = !admin.is_active;
-    if (!window.confirm(
-      newStatus 
-        ? `Activate ${admin.full_name}?` 
-        : `Suspend ${admin.full_name}? They won't be able to login.`
-    )) return;
+    if (
+      !window.confirm(
+        newStatus
+          ? `Activate ${admin.full_name}?`
+          : `Suspend ${admin.full_name}? They won't be able to login.`,
+      )
+    )
+      return;
 
     setActionId(admin.id);
     try {
       await api.patch(`/auth/users/${admin.id}/toggle-active`);
-      toast.success(`${admin.full_name} has been ${newStatus ? 'activated' : 'suspended'}`);
-      setAdmins(prev => prev.map(a => 
-        a.id === admin.id ? { ...a, is_active: newStatus } : a
-      ));
-    } catch () {
-      toast.error('Failed to update status');
+      toast.success(
+        `${admin.full_name} has been ${newStatus ? "activated" : "suspended"}`,
+      );
+      setAdmins((prev) =>
+        prev.map((a) =>
+          a.id === admin.id ? { ...a, is_active: newStatus } : a,
+        ),
+      );
+    } catch (err) {
+      toast.error("Failed to update status");
     } finally {
       setActionId(null);
     }
   };
 
   const handleDelete = async (admin) => {
-    if (!window.confirm(`Permanently remove ${admin.full_name}? This action cannot be undone.`)) return;
+    if (
+      !window.confirm(
+        `Permanently remove ${admin.full_name}? This action cannot be undone.`,
+      )
+    )
+      return;
 
     setActionId(admin.id);
     try {
       await api.delete(`/auth/users/${admin.id}`);
       toast.success(`${admin.full_name} has been removed`);
-      setAdmins(prev => prev.filter(a => a.id !== admin.id));
+      setAdmins((prev) => prev.filter((a) => a.id !== admin.id));
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to delete admin');
+      toast.error(err.response?.data?.error || "Failed to delete admin");
     } finally {
       setActionId(null);
     }
   };
 
   const getStoreName = (store_id) => {
-    const store = stores.find(s => s.id === store_id);
-    return store ? store.name : 'No store assigned';
+    const store = stores.find((s) => s.id === store_id);
+    return store ? store.name : "No store assigned";
   };
 
   return (
@@ -107,28 +119,37 @@ const MerchantAdmins = () => {
       {/* Invite Form */}
       <div className="card mb-8">
         <h2 className="text-lg font-semibold mb-4">Invite New Admin</h2>
-        <form onSubmit={handleInviteAdmin} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <form
+          onSubmit={handleInviteAdmin}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4"
+        >
           <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address *
+            </label>
             <input
               type="email"
               className="input-field"
               placeholder="admin@example.com"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Assign to Store</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Assign to Store
+            </label>
             <select
               className="input-field"
               value={storeId}
-              onChange={e => setStoreId(e.target.value)}
+              onChange={(e) => setStoreId(e.target.value)}
             >
               <option value="">Select Store</option>
-              {stores.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
+              {stores.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
               ))}
             </select>
           </div>
@@ -138,7 +159,7 @@ const MerchantAdmins = () => {
               disabled={loading}
               className="btn-primary w-full"
             >
-              {loading ? 'Sending...' : 'Send Invite'}
+              {loading ? "Sending..." : "Send Invite"}
             </button>
           </div>
         </form>
@@ -148,7 +169,9 @@ const MerchantAdmins = () => {
       <div className="card">
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-lg font-semibold">All Admins</h2>
-          <span className="text-sm text-gray-500">{admins.length} Admin{admins.length !== 1 ? 's' : ''}</span>
+          <span className="text-sm text-gray-500">
+            {admins.length} Admin{admins.length !== 1 ? "s" : ""}
+          </span>
         </div>
 
         {fetching ? (
@@ -172,19 +195,30 @@ const MerchantAdmins = () => {
                 </tr>
               </thead>
               <tbody>
-                {admins.map(admin => (
-                  <tr key={admin.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-4 px-4 font-medium">{admin.full_name || '—'}</td>
+                {admins.map((admin) => (
+                  <tr
+                    key={admin.id}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="py-4 px-4 font-medium">
+                      {admin.full_name || "—"}
+                    </td>
                     <td className="py-4 px-4 text-gray-600">{admin.email}</td>
-                    <td className="py-4 px-4 text-gray-600">{admin.phone_number || '—'}</td>
-                    <td className="py-4 px-4 text-gray-600">{getStoreName(admin.store_id)}</td>
+                    <td className="py-4 px-4 text-gray-600">
+                      {admin.phone_number || "—"}
+                    </td>
+                    <td className="py-4 px-4 text-gray-600">
+                      {getStoreName(admin.store_id)}
+                    </td>
                     <td className="py-4 px-4">
-                      <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                        admin.is_active 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-red-100 text-red-700'
-                      }`}>
-                        {admin.is_active ? 'Active' : 'Suspended'}
+                      <span
+                        className={`px-3 py-1 text-xs font-medium rounded-full ${
+                          admin.is_active
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {admin.is_active ? "Active" : "Suspended"}
                       </span>
                     </td>
                     <td className="py-4 px-4">
@@ -193,14 +227,16 @@ const MerchantAdmins = () => {
                           onClick={() => handleToggleActive(admin)}
                           disabled={actionId === admin.id}
                           className={`text-xs px-4 py-1.5 rounded-lg font-medium transition-colors ${
-                            admin.is_active 
-                              ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' 
-                              : 'bg-green-100 text-green-700 hover:bg-green-200'
+                            admin.is_active
+                              ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                              : "bg-green-100 text-green-700 hover:bg-green-200"
                           }`}
                         >
-                          {actionId === admin.id 
-                            ? 'Updating...' 
-                            : admin.is_active ? 'Suspend' : 'Activate'}
+                          {actionId === admin.id
+                            ? "Updating..."
+                            : admin.is_active
+                              ? "Suspend"
+                              : "Activate"}
                         </button>
 
                         <button
@@ -208,7 +244,7 @@ const MerchantAdmins = () => {
                           disabled={actionId === admin.id}
                           className="text-xs bg-red-50 text-red-600 hover:bg-red-100 px-4 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50"
                         >
-                          {actionId === admin.id ? 'Removing...' : 'Delete'}
+                          {actionId === admin.id ? "Removing..." : "Delete"}
                         </button>
                       </div>
                     </td>
