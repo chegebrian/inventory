@@ -1,9 +1,150 @@
-import React from 'react'
+import React, { useEffect, useState } from "react";
+import DashboardLayout from "../../components/layout/DashboardLayout";
+import { toast } from "react-toastify";
+import api from "../../utils/api";
+import StatCard from "../../components/common/StatCard";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  Legend,
+} from "recharts";
 
-function MerchantDashboard() {
+const MerchantDashboard = () => {
+  const [summary, setSummary] = useState({});
+  const [trendData, setTrendData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [summaryRes, trendRes] = await Promise.all([
+          api.get("/inventory/report/summary", { signal: controller.signal }),
+          api.get("/inventory/report/trend", { signal: controller.signal }),
+        ]);
+        setSummary(summaryRes.data.summary || {});
+        setTrendData(trendRes.data.trend || []);
+      } catch (err) {
+        if (!controller.signal.aborted) {
+          setError(err);
+          toast.error("Failed to load dashboard data");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    return () => controller.abort();
+  }, []);
+
   return (
-    <div>MerchantDashboard</div>
-  )
-}
+    <DashboardLayout title="Merchant Dashboard 📊">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          title="Total Received"
+          value={summary.total_items_received || 0}
+          icon="📥"
+          color="bg-blue-500"
+        />
+        <StatCard
+          title="In Stock"
+          value={summary.total_items_in_stock || 0}
+          icon="📦"
+          color="bg-green-500"
+        />
+        <StatCard
+          title="Spoilt"
+          value={summary.total_items_spoilt || 0}
+          icon="⚠️"
+          color="bg-red-500"
+        />
+        <StatCard
+          title="Unpaid (KES)"
+          value={`KES ${(summary.total_unpaid_amount || 0).toLocaleString()}`}
+          icon="💰"
+          color="bg-orange-500"
+        />
+      </div>
 
-export default MerchantDashboard
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bar Chart */}
+        <div className="card">
+          <h3 className="text-lg font-semibold mb-4">Store Performance</h3>
+          <ResponsiveContainer width="100%" height={420}>
+            <BarChart
+              data={trendData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="product_name"
+                angle={-45}
+                textAnchor="end"
+                height={100}
+                interval={0}
+                tick={{ fontSize: 11 }}
+              />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="quantity_received" fill="#4F46E5" name="Received" />
+              <Bar dataKey="quantity_in_stock" fill="#10B981" name="In Stock" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Line Chart */}
+        <div className="card">
+          <h3 className="text-lg font-semibold mb-4">Trend Over Time</h3>
+          <ResponsiveContainer width="100%" height={420}>
+            <LineChart
+              data={trendData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="product_name"
+                angle={-45}
+                textAnchor="end"
+                height={100}
+                interval={0}
+                tick={{ fontSize: 11 }}
+              />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="quantity_received"
+                stroke="#4F46E5"
+                strokeWidth={3}
+                name="Received"
+              />
+              <Line
+                type="monotone"
+                dataKey="quantity_in_stock"
+                stroke="#10B981"
+                strokeWidth={3}
+                name="In Stock"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default MerchantDashboard;
