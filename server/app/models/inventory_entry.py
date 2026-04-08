@@ -18,3 +18,19 @@ class InventoryEntry(db.Model):
     # Relationships - Updated for new junction table
     store_product = db.relationship('StoreProduct', back_populates='inventory_entries')
     clerk = db.relationship('User', back_populates='inventory_entries')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'store_product_id': self.store_product_id,
+            'product_name': self.store_product.product.name if self.store_product and self.store_product.product else None,
+            'clerk_id': self.clerk_id,
+            'clerk_name': self.clerk.full_name if self.clerk else None,
+            'quantity_received': self.quantity_received,
+            'quantity_in_stock': self.quantity_in_stock,
+            'quantity_spoilt': self.quantity_spoilt,
+            'buying_price': self.buying_price,
+            'selling_price': self.selling_price,
+            'payment_status': self.payment_status,
+            'recorded_at': self.recorded_at.strftime('%B %d, %Y %I:%M %p') if self.recorded_at else None
+        }
