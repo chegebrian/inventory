@@ -9,3 +9,43 @@ from sqlalchemy import func
 from datetime import datetime
 
 inventory_bp = Blueprint('inventory', __name__)
+
+# -----------------------------------------------
+# CREATE AN INVENTORY ENTRY (Clerk only)
+# -----------------------------------------------
+@inventory_bp.route('/', methods=['POST'])
+@jwt_required()
+def create_entry():
+    claims = get_jwt()
+    if claims.get('role') != 'clerk':
+        return jsonify({'error': 'Only clerks can record inventory'}), 403
+
+    current_user_id = get_jwt_identity()
+    data = request.get_json()
+
+    required = ['store_product_id', 'quantity_received', 'buying_price', 'selling_price']
+    missing = [f for f in required if f not in data or not data[f]]
+    if missing:
+        return jsonify({'error': f'Missing fields: {", ".join(missing)}'}), 400
+
+    store_product = db.session.get(StoreProduct, data['store_product_id'])
+    if not store_product:
+        return jsonify({'error': 'Product not found in store'}), 404
+
+    entry = InventoryEntry(
+        store_product_id=data['store_product_id'],
+        clerk_id=current_user_id,
+        quantity_received=int(data['quantity_received']),
+        quantity_in_stock=int(data.get('quantity_in_stock', data['quantity_received'])),
+        quantity_spoilt=int(data.get('quantity_spoilt', 0)),
+        buying_price=float(data['buying_price']),
+        selling_price=float(data['selling_price']),
+        payment_status=data.get('payment_status', 'unpaid')
+    )
+    db.session.add(entry)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Inventory entry recorded successfully ✅',
+        'entry': entry.to_dict()
+    }), 201
