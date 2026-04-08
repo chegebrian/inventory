@@ -49,3 +49,40 @@ def create_entry():
         'message': 'Inventory entry recorded successfully ✅',
         'entry': entry.to_dict()
     }), 201
+
+# -----------------------------------------------
+# GET ALL ENTRIES (paginated)
+# -----------------------------------------------
+@inventory_bp.route('/', methods=['GET'])
+@jwt_required()
+def get_entries():
+    current_user_id = get_jwt_identity()
+    current_user = db.session.get(User, current_user_id)
+    claims = get_jwt()
+    role = claims.get('role')
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    payment_status = request.args.get('payment_status')
+
+    if role == 'clerk':
+        query = InventoryEntry.query.filter_by(clerk_id=current_user_id)
+    elif role == 'admin':
+        if not current_user or not current_user.store_id:
+            return jsonify({'error': 'Admin not assigned to any store'}), 403
+        query = InventoryEntry.query.join(StoreProduct).filter(StoreProduct.store_id == current_user.store_id)
+    else:
+        query = InventoryEntry.query
+
+    if payment_status in ['paid', 'unpaid']:
+        query = query.filter_by(payment_status=payment_status)
+
+    entries = query.order_by(InventoryEntry.recorded_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    return jsonify({
+        'entries': [e.to_dict() for e in entries.items],
+        'total': entries.total,
+        'pages': entries.pages,
+        'current_page': entries.page
+    }), 200
