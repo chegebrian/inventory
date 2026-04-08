@@ -13,3 +13,8 @@ class InventoryEntry(db.Model):
     buying_price = db.Column(db.Float, nullable=False)
     selling_price = db.Column(db.Float, nullable=False)
     payment_status = db.Column(db.String(20), default='unpaid')
+    recorded_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships - Updated for new junction table
+    store_product = db.relationship('StoreProduct', back_populates='inventory_entries')
+    clerk = db.relationship('User', back_populates='inventory_entries')
