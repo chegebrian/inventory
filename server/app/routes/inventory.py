@@ -174,3 +174,43 @@ def get_summary():
             'total_entries': len(entries)
         }
     }), 200
+
+# -----------------------------------------------
+# REPORT TREND 
+# -----------------------------------------------
+@inventory_bp.route('/report/trend', methods=['GET'])
+@jwt_required()
+def report_trend():
+    claims = get_jwt()
+    role = claims.get('role')
+    current_user_id = get_jwt_identity()
+    current_user = db.session.get(User, current_user_id)
+    store_id = request.args.get('store_id', type=int)
+
+    query = db.session.query(
+        Product.name.label('product_name'),
+        func.sum(InventoryEntry.quantity_received).label('quantity_received'),
+        func.sum(InventoryEntry.quantity_in_stock).label('quantity_in_stock')
+    ).join(StoreProduct, StoreProduct.id == InventoryEntry.store_product_id)\
+     .join(Product, Product.id == StoreProduct.product_id)
+
+    if role == 'clerk':
+        query = query.filter(InventoryEntry.clerk_id == current_user_id)
+    elif role == 'admin':
+        if not current_user or not current_user.store_id:
+            return jsonify({'error': 'Admin not assigned to any store'}), 403
+        query = query.filter(StoreProduct.store_id == current_user.store_id)
+    elif role == 'merchant' and store_id:
+        query = query.filter(StoreProduct.store_id == store_id)
+
+    trend = query.group_by(Product.name)\
+                 .order_by(func.sum(InventoryEntry.quantity_received).desc())\
+                 .limit(10).all()
+
+    result = [{
+        'product_name': row.product_name,
+        'quantity_received': int(row.quantity_received or 0),
+        'quantity_in_stock': int(row.quantity_in_stock or 0)
+    } for row in trend]
+
+    return jsonify({'trend': result}), 200
