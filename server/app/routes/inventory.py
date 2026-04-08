@@ -106,3 +106,30 @@ def get_my_entries():
     return jsonify({
         'entries': [e.to_dict() for e in entries]
     }), 200
+
+# -----------------------------------------------
+# UPDATE PAYMENT STATUS
+# -----------------------------------------------
+@inventory_bp.route('/<int:entry_id>/payment', methods=['PATCH'])
+@jwt_required()
+def update_payment_status(entry_id):
+    claims = get_jwt()
+    if claims.get('role') not in ['admin', 'merchant']:
+        return jsonify({'error': 'Only admins and merchants can update payment status'}), 403
+
+    entry = InventoryEntry.query.get(entry_id)
+    if not entry:
+        return jsonify({'error': 'Entry not found'}), 404
+
+    data = request.get_json()
+    new_status = data.get('payment_status')
+    if new_status not in ['paid', 'unpaid']:
+        return jsonify({'error': 'Payment status must be paid or unpaid'}), 400
+
+    entry.payment_status = new_status
+    db.session.commit()
+
+    return jsonify({
+        'message': f'Payment status updated to {new_status} ✅',
+        'entry': entry.to_dict()
+    }), 200
