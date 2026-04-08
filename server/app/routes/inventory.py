@@ -86,3 +86,23 @@ def get_entries():
         'pages': entries.pages,
         'current_page': entries.page
     }), 200
+
+# -----------------------------------------------
+# GET MY ENTRIES (for Clerk Dashboard)
+# -----------------------------------------------
+@inventory_bp.route('/my-entries', methods=['GET'])
+@jwt_required()
+def get_my_entries():
+    current_user_id = get_jwt_identity()
+    claims = get_jwt()
+    if claims.get('role') != 'clerk':
+        return jsonify({'error': 'Only clerks can access my-entries'}), 403
+
+    limit = request.args.get('limit', 6, type=int)
+    entries = InventoryEntry.query.filter_by(clerk_id=current_user_id)\
+        .order_by(InventoryEntry.recorded_at.desc())\
+        .limit(limit).all()
+
+    return jsonify({
+        'entries': [e.to_dict() for e in entries]
+    }), 200
