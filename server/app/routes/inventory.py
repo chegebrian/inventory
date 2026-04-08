@@ -133,3 +133,44 @@ def update_payment_status(entry_id):
         'message': f'Payment status updated to {new_status} ✅',
         'entry': entry.to_dict()
     }), 200
+
+# -----------------------------------------------
+# REPORT SUMMARY
+# -----------------------------------------------
+@inventory_bp.route('/report/summary', methods=['GET'])
+@jwt_required()
+def get_summary():
+    current_user_id = get_jwt_identity()
+    current_user = db.session.get(User, current_user_id)
+    claims = get_jwt()
+    role = claims.get('role')
+    store_id = request.args.get('store_id', type=int)
+
+    if role == 'clerk':
+        entries = InventoryEntry.query.filter_by(clerk_id=current_user_id).all()
+    elif role == 'admin':
+        if not current_user or not current_user.store_id:
+            return jsonify({'error': 'Admin not assigned to any store'}), 403
+        entries = InventoryEntry.query.join(StoreProduct).filter(StoreProduct.store_id == current_user.store_id).all()
+    else:
+        if store_id:
+            entries = InventoryEntry.query.join(StoreProduct).filter(StoreProduct.store_id == store_id).all()
+        else:
+            entries = InventoryEntry.query.all()
+
+    total_received = sum(e.quantity_received for e in entries)
+    total_in_stock = sum(e.quantity_in_stock for e in entries)
+    total_spoilt = sum(e.quantity_spoilt for e in entries)
+    total_paid = sum(e.buying_price * e.quantity_received for e in entries if e.payment_status == 'paid')
+    total_unpaid = sum(e.buying_price * e.quantity_received for e in entries if e.payment_status == 'unpaid')
+
+    return jsonify({
+        'summary': {
+            'total_items_received': total_received,
+            'total_items_in_stock': total_in_stock,
+            'total_items_spoilt': total_spoilt,
+            'total_paid_amount': round(total_paid, 2),
+            'total_unpaid_amount': round(total_unpaid, 2),
+            'total_entries': len(entries)
+        }
+    }), 200
