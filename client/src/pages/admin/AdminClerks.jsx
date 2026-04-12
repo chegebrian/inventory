@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import api from '../../utils/api';
+import { useSelector } from 'react-redux';
+import Table from '../../components/common/Table';
 
 const AdminClerks = () => {
   const [clerks, setClerks] = useState([]);
@@ -11,22 +12,25 @@ const AdminClerks = () => {
   const [deletingId, setDeletingId] = useState(null);
   const { user } = useSelector(state => state.auth);
 
-  const fetchClerks = async () => {
+  const fetchClerks = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/auth/users?role=clerk');
+      const res = await api.get(`/auth/users?role=clerk&store_id=${user?.store_id}`);
       setClerks(res.data.users || []);
     } catch {
       toast.error('Failed to load clerks');
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.store_id]);
+
+  useEffect(() => {
+    fetchClerks();
+  }, [fetchClerks]);
 
   const sendInvite = async (e) => {
     e.preventDefault();
     if (!inviteEmail) return toast.error('Email is required');
-
     try {
       await api.post('/auth/invite', {
         email: inviteEmail,
@@ -46,36 +50,63 @@ const AdminClerks = () => {
       await api.patch(`/auth/users/${clerk.id}/toggle-active`);
       toast.success(clerk.is_active ? 'Clerk suspended' : 'Clerk activated');
       fetchClerks();
-    } catch {
+    } catch (err) {
       toast.error('Failed to update status');
     }
   };
 
   const handleDelete = async (clerk) => {
     if (!window.confirm(`Delete clerk "${clerk.full_name}"?`)) return;
-
     setDeletingId(clerk.id);
     try {
       await api.delete(`/auth/users/${clerk.id}`);
       toast.success('Clerk deleted successfully');
       fetchClerks();
-    } catch {
+    } catch (err) {
       toast.error('Failed to delete clerk');
     } finally {
       setDeletingId(null);
     }
   };
 
-  useEffect(() => {
-    fetchClerks();
-  }, []);
+  const columns = [
+    { header: 'Name', accessor: 'full_name' },
+    { header: 'Email', accessor: 'email' },
+    { header: 'Phone', accessor: 'phone_number' },
+    { header: 'Status', accessor: 'status' },
+    { header: 'Actions', accessor: 'actions' },
+  ];
+
+  const tableData = clerks.map(clerk => ({
+    full_name: clerk.full_name,
+    email: clerk.email,
+    phone_number: clerk.phone_number || '—',
+    status: (
+      <span className={`px-3 py-1 text-xs rounded-full ${clerk.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+        {clerk.is_active ? 'Active' : 'Suspended'}
+      </span>
+    ),
+    actions: (
+      <div className="flex gap-3">
+        <button onClick={() => toggleActive(clerk)} className="text-blue-600 hover:text-blue-700 text-sm">
+          {clerk.is_active ? 'Suspend' : 'Activate'}
+        </button>
+        <button
+          onClick={() => handleDelete(clerk)}
+          disabled={deletingId === clerk.id}
+          className="text-red-600 hover:text-red-700 text-sm"
+        >
+          {deletingId === clerk.id ? 'Deleting...' : 'Delete'}
+        </button>
+      </div>
+    ),
+  }));
 
   return (
     <DashboardLayout title="Manage Clerks 👥">
       <div className="card">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">All Clerks</h2>
-
           <form onSubmit={sendInvite} className="flex gap-3">
             <input
               type="email"
@@ -89,47 +120,7 @@ const AdminClerks = () => {
           </form>
         </div>
 
-        {loading ? (
-          <p className="text-center py-10 text-gray-400">Loading clerks...</p>
-        ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-4">Name</th>
-                <th className="text-left py-4">Email</th>
-                <th className="text-left py-4">Phone</th>
-                <th className="text-left py-4">Status</th>
-                <th className="text-left py-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clerks.map(clerk => (
-                <tr key={clerk.id} className="border-b hover:bg-gray-50">
-                  <td className="py-4 font-medium">{clerk.full_name}</td>
-                  <td className="py-4 text-gray-600">{clerk.email}</td>
-                  <td className="py-4 text-gray-600">{clerk.phone_number || '—'}</td>
-                  <td className="py-4">
-                    <span className={`px-3 py-1 text-xs rounded-full ${clerk.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {clerk.is_active ? 'Active' : 'Suspended'}
-                    </span>
-                  </td>
-                  <td className="py-4">
-                    <button onClick={() => toggleActive(clerk)} className="text-blue-600 hover:text-blue-700 mr-4">
-                      {clerk.is_active ? 'Suspend' : 'Activate'}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(clerk)}
-                      className="text-red-600 hover:text-red-700"
-                      disabled={deletingId === clerk.id}
-                    >
-                      {deletingId === clerk.id ? 'Deleting...' : 'Delete'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <Table columns={columns} data={tableData} loading={loading} />
       </div>
     </DashboardLayout>
   );
