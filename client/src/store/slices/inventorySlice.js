@@ -1,8 +1,8 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../../utils/api";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import api from '../../utils/api';
 
 export const fetchEntries = createAsyncThunk(
-  "inventory/fetchEntries",
+  'inventory/fetchEntries',
   async (params = {}, { rejectWithValue }) => {
     try {
       const { page = 1, per_page = 10, payment_status } = params;
@@ -11,39 +11,39 @@ export const fetchEntries = createAsyncThunk(
       const response = await api.get(url);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || "Failed");
+      return rejectWithValue(error.response?.data?.error || 'Failed');
     }
-  },
+  }
 );
 
 export const createEntry = createAsyncThunk(
-  "inventory/createEntry",
+  'inventory/createEntry',
   async (entryData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/inventory/", entryData);
+      const response = await api.post('/inventory/', entryData);
       return response.data.entry;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || "Failed");
+      return rejectWithValue(error.response?.data?.error || 'Failed');
     }
-  },
+  }
 );
 
 export const fetchSummary = createAsyncThunk(
-  "inventory/fetchSummary",
+  'inventory/fetchSummary',
   async (store_id, { rejectWithValue }) => {
     try {
-      let url = "/inventory/report/summary";
+      let url = '/inventory/report/summary';
       if (store_id) url += `?store_id=${store_id}`;
       const response = await api.get(url);
       return response.data.summary;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || "Failed");
+      return rejectWithValue(error.response?.data?.error || 'Failed');
     }
-  },
+  }
 );
 
 const inventorySlice = createSlice({
-  name: "inventory",
+  name: 'inventory',
   initialState: {
     entries: [],
     summary: null,
@@ -54,15 +54,11 @@ const inventorySlice = createSlice({
     error: null,
   },
   reducers: {
-    clearError: (state) => {
-      state.error = null;
-    },
+    clearError: (state) => { state.error = null; }
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchEntries.pending, (state) => {
-        state.loading = true;
-      })
+      .addCase(fetchEntries.pending, (state) => { state.loading = true; })
       .addCase(fetchEntries.fulfilled, (state, action) => {
         state.loading = false;
         state.entries = action.payload.entries;
@@ -80,7 +76,7 @@ const inventorySlice = createSlice({
       .addCase(createEntry.fulfilled, (state, action) => {
         state.entries.unshift(action.payload);
       });
-  },
+  }
 });
 
 export const { clearError } = inventorySlice.actions;
