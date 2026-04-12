@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -11,13 +11,18 @@ const Login = () => {
   const { loading, error, user } = useSelector((state) => state.auth);
   const { register, handleSubmit, formState: { errors } } = useForm();
 
+  const redirectByRole = useCallback((role) => {
+    if (role === 'merchant') navigate('/merchant/dashboard');
+    else if (role === 'admin') navigate('/admin/dashboard');
+    else if (role === 'clerk') navigate('/clerk/dashboard');
+  }, [navigate]);
+
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
       redirectByRole(user.role);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, redirectByRole]);
 
   // Show error toast
   useEffect(() => {
@@ -25,14 +30,7 @@ const Login = () => {
       toast.error(error);
       dispatch(clearError());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error]);
-
-  const redirectByRole = (role) => {
-    if (role === 'merchant') navigate('/merchant/dashboard');
-    else if (role === 'admin') navigate('/admin/dashboard');
-    else if (role === 'clerk') navigate('/clerk/dashboard');
-  };
+  }, [error, dispatch]);
 
   const onSubmit = async (data) => {
     const result = await dispatch(loginUser(data));
@@ -51,7 +49,7 @@ const Login = () => {
           <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white text-2xl">📦</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">Inventory App</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Local Shop</h1>
           <p className="text-gray-500 mt-1">Sign in to your account</p>
         </div>
 
@@ -112,6 +110,28 @@ const Login = () => {
           </button>
 
         </form>
+
+        {/* Forgot Password Link  */}
+        <div className="text-center mt-4">
+          <button
+            onClick={() => navigate('/forgot-password')}
+            className="text-indigo-600 hover:text-indigo-700 text-sm font-medium hover:underline"
+          >
+            Forgot Password?
+          </button>
+        </div>
+
+        {/* Register link for merchants - ADDED FROM UPDATES */}
+        <div className="text-center mt-6 text-sm">
+          Don't have an account?{' '}
+          <button
+            onClick={() => navigate('/register')}
+            className="text-indigo-600 hover:text-indigo-700 font-medium underline"
+          >
+            Register here
+          </button>
+        </div>
+
       </div>
     </div>
   );
