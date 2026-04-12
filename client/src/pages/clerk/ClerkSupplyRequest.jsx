@@ -1,62 +1,50 @@
-/**
- * Feature: Clerk Supply Requests
- * Branch: feature/clerk-supply-requests
- * Changed for new store_products junction table: use store_product_id instead of product_id
- */
-
 import React, { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { toast } from 'react-toastify';
 import api from '../../utils/api';
+import Table from '../../components/common/Table';
+import EmptyState from '../../components/common/EmptyState';
 
 const ClerkSupplyRequests = () => {
   const [requests, setRequests] = useState([]);
-  const [storeProducts, setStoreProducts] = useState([]);   // Changed for new schema
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ store_product_id: '', quantity_requested: '', note: '' });
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
   const fetchRequests = useCallback(async () => {
-    setLoading(true);
     try {
-      const res = await api.get(`/supply-requests/?page=${page}&per_page=10`);
+      const res = await api.get('/supply-requests/?page=1&per_page=10');
       setRequests(res.data.requests || []);
-      setTotalPages(res.data.pages || 1);
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to load your requests');
-    } finally {
-      setLoading(false);
+    } catch {
+      toast.error('Failed to load your requests');
     }
-  }, [page]);
+  }, []);
 
-  const fetchStoreProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async () => {
     try {
-      const res = await api.get('/store-products/');   // Changed for new schema
-      setStoreProducts(res.data.store_products || []);
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to load products');
+      const res = await api.get('/products/store-products');
+      setProducts(res.data.store_products || []);
+    } catch {
+      toast.error('Failed to load products');
     }
   }, []);
 
   useEffect(() => {
     fetchRequests();
-    fetchStoreProducts();
-  }, [fetchRequests, fetchStoreProducts]);
+    fetchProducts();
+  }, [fetchRequests, fetchProducts]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.store_product_id || !form.quantity_requested) {
-      return toast.error('Product and quantity are required');
-    }
+    if (!form.store_product_id) return toast.error('Please select a product');
+
     try {
       await api.post('/supply-requests/', {
-        store_product_id: parseInt(form.store_product_id),   // Changed for new schema
+        store_product_id: parseInt(form.store_product_id),
         quantity_requested: parseInt(form.quantity_requested),
-        note: form.note.trim()
+        note: form.note
       });
-      toast.success('Supply request submitted successfully ✅');
+      toast.success('Supply request submitted ✅');
       setShowForm(false);
       setForm({ store_product_id: '', quantity_requested: '', note: '' });
       fetchRequests();
@@ -65,128 +53,84 @@ const ClerkSupplyRequests = () => {
     }
   };
 
-  const getStatusBadge = (status) => {
-    if (status === 'approved') return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
-    if (status === 'declined') return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
-    return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300';
-  };
+  const columns = [
+    { header: 'Product', accessor: 'product_name' },
+    { header: 'Quantity', accessor: 'quantity_requested' },
+    { header: 'Status', accessor: 'status' },
+    { header: 'Date', accessor: 'created_at' },
+  ];
+
+  const tableData = requests.map(r => ({
+    product_name: r.product_name,
+    quantity_requested: r.quantity_requested,
+    status: (
+      <span className={`px-3 py-1 text-xs rounded-full ${r.status === 'approved' ? 'bg-green-100 text-green-700' : r.status === 'declined' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+        {r.status}
+      </span>
+    ),
+    created_at: r.created_at
+  }));
 
   return (
     <DashboardLayout title="Supply Requests 🚚">
-      <div className="space-y-6">
-        <div className="card">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">My Supply Requests</h2>
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="btn-primary"
-            >
-              {showForm ? 'Cancel' : '+ New Request'}
-            </button>
-          </div>
-
-          {showForm && (
-            <form onSubmit={handleSubmit} className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-8 space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product *</label>
-                <select
-                  className="input-field"
-                  value={form.store_product_id}
-                  onChange={e => setForm({ ...form, store_product_id: e.target.value })}
-                  required
-                >
-                  <option value="">Select product in this store...</option>
-                  {storeProducts.map(sp => (
-                    <option key={sp.id} value={sp.id}>{sp.product_name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity Requested *</label>
-                <input
-                  type="number"
-                  min="1"
-                  className="input-field"
-                  value={form.quantity_requested}
-                  onChange={e => setForm({ ...form, quantity_requested: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Note (optional)</label>
-                <textarea
-                  className="input-field h-24 resize-y"
-                  value={form.note}
-                  onChange={e => setForm({ ...form, note: e.target.value })}
-                  placeholder="e.g. Running low on stock this week"
-                />
-              </div>
-
-              <button type="submit" className="btn-primary w-full">Submit Request</button>
-            </form>
-          )}
-
-          {loading ? (
-            <div className="text-center py-16 text-gray-400">Loading your requests...</div>
-          ) : requests.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
-              <p className="text-5xl mb-4">🚚</p>
-              <p>No supply requests yet.</p>
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[700px]">
-                  <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <th className="text-left py-4 px-4 font-medium text-gray-500">Product</th>
-                      <th className="text-left py-4 px-4 font-medium text-gray-500">Qty Requested</th>
-                      <th className="text-left py-4 px-4 font-medium text-gray-500">Note</th>
-                      <th className="text-left py-4 px-4 font-medium text-gray-500">Status</th>
-                      <th className="text-left py-4 px-4 font-medium text-gray-500">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {requests.map(r => (
-                      <tr key={r.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <td className="py-4 px-4 font-medium">{r.product_name}</td>
-                        <td className="py-4 px-4 font-medium">{r.quantity_requested}</td>
-                        <td className="py-4 px-4 text-gray-500 max-w-xs truncate">{r.note || '—'}</td>
-                        <td className="py-4 px-4">
-                          <span className={`px-4 py-1 text-xs font-medium rounded-full ${getStatusBadge(r.status)}`}>
-                            {r.status}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4 text-gray-400 dark:text-gray-500 text-xs">{r.created_at}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {totalPages > 1 && (
-                <div className="flex justify-center gap-3 mt-6">
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="px-4 py-2 border rounded-lg disabled:opacity-50"
-                  >
-                    ← Previous
-                  </button>
-                  <span className="px-4 py-2 text-sm">Page {page} of {totalPages}</span>
-                  <button
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                    className="px-4 py-2 border rounded-lg disabled:opacity-50"
-                  >
-                    Next →
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+      <div className="card">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">Your Supply Requests</h2>
+          <button onClick={() => setShowForm(true)} className="btn-primary">+ New Request</button>
         </div>
+
+        {showForm && (
+          <form onSubmit={handleSubmit} className="bg-gray-50 p-6 rounded-2xl mb-8">
+            <div>
+              <label className="block text-sm font-medium mb-1">Product</label>
+              <select
+                className="input-field"
+                value={form.store_product_id}
+                onChange={(e) => setForm({ ...form, store_product_id: e.target.value })}
+                required
+              >
+                <option value="">Select Product</option>
+                {products.map((sp) => (
+                  <option key={sp.id} value={sp.id}>
+                    {sp.product_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium mb-1">Quantity Requested</label>
+              <input
+                type="number"
+                className="input-field"
+                value={form.quantity_requested}
+                onChange={(e) => setForm({ ...form, quantity_requested: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium mb-1">Note (optional)</label>
+              <textarea
+                className="input-field"
+                value={form.note}
+                onChange={(e) => setForm({ ...form, note: e.target.value })}
+                rows="3"
+              />
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button type="submit" className="btn-primary flex-1">Submit Request</button>
+              <button type="button" onClick={() => setShowForm(false)} className="px-6 py-3 border border-gray-300 rounded-lg">Cancel</button>
+            </div>
+          </form>
+        )}
+
+        {requests.length === 0 ? (
+          <EmptyState title="No supply requests yet" message="Your requests will appear here" icon="🚚" />
+        ) : (
+          <Table columns={columns} data={tableData} />
+        )}
       </div>
     </DashboardLayout>
   );
