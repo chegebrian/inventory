@@ -10,12 +10,30 @@ class Store(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
-    users = db.relationship('User', back_populates='store', cascade='all, delete-orphan')
-    supply_requests = db.relationship('SupplyRequest', back_populates='store', cascade='all, delete-orphan')
-    
-    # Changed for new store_products junction table: added relationship to junction table
-    store_products = db.relationship('StoreProduct', back_populates='store', cascade='all, delete-orphan')
+    merchant_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+
+    users = db.relationship(
+        'User',
+        back_populates='store',
+        foreign_keys='User.store_id',
+        cascade='all, delete-orphan'
+    )
+    supply_requests = db.relationship(
+        'SupplyRequest',
+        back_populates='store',
+        cascade='all, delete-orphan'
+    )
+    store_products = db.relationship(
+        'StoreProduct',
+        back_populates='store',
+        cascade='all, delete-orphan'
+    )
+
+    merchant = db.relationship(
+        'User',
+        foreign_keys=[merchant_id],
+        back_populates='owned_stores'
+    )
 
     def to_dict(self):
         return {
@@ -23,5 +41,6 @@ class Store(db.Model):
             'name': self.name,
             'location': self.location,
             'is_active': self.is_active,
+            'merchant_id': self.merchant_id,
             'created_at': self.created_at.strftime('%B %d, %Y') if self.created_at else None
         }
