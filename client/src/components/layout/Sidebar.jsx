@@ -1,125 +1,82 @@
-import React, { useState, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../../store/slices/authSlice";
-import { toast } from "react-toastify";
+import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom'; 
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
+import { toast } from 'react-toastify';
 
 const Sidebar = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
   const { user } = useSelector((state) => state.auth);
 
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("darkMode") === "true";
-  });
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("darkMode", "true");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("darkMode", "false");
-    }
-  }, [darkMode]);
-
-  const handleLogout = () => {
-    dispatch(logout());
-    toast.success("Logged out successfully");
-    navigate("/");
-  };
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+  const handleLogout = () => {    
+    dispatch(logout());   
+    toast.success('Logged out successfully');
+    setTimeout(() => {
+      navigate('/', { replace: true });
+    }, 80);
   };
 
   const merchantLinks = [
-    { to: "/merchant/dashboard", icon: "📊", label: "Dashboard" },
-    { to: "/merchant/stores", icon: "🏪", label: "Stores" },
-    { to: "/merchant/admins", icon: "👔", label: "Admins" },
-    { to: "/merchant/reports", icon: "📈", label: "Reports" },
+    { to: '/merchant/dashboard', icon: '📊', label: 'Dashboard' },
+    { to: '/merchant/stores', icon: '🏪', label: 'Stores' },
+    { to: '/merchant/admins', icon: '👔', label: 'Admins' },
+    { to: '/merchant/reports', icon: '📈', label: 'Reports' },
+    { to: '/profile/edit', icon: '👤', label: 'Edit Profile' },
+    { to: '/profile/change-password', icon: '🔑', label: 'Change Password' },   
   ];
 
   const adminLinks = [
-    { to: "/admin/dashboard", icon: "📊", label: "Dashboard" },
-    { to: "/admin/products", icon: "📦", label: "Products" },
-    { to: "/admin/inventory", icon: "📋", label: "Inventory" },
-    { to: "/admin/supply-requests", icon: "🚚", label: "Supply Requests" },
-    { to: "/admin/clerks", icon: "📝", label: "Clerks" },
-    { to: "/admin/reports", icon: "📝", label: "Reports" },
+    { to: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
+    { to: '/admin/products', icon: '📦', label: 'Products' },
+    { to: '/admin/inventory', icon: '📋', label: 'Inventory' },
+    { to: '/admin/supply-requests', icon: '🚚', label: 'Supply Requests' },
+    { to: '/admin/clerks', icon: '📝', label: 'Clerks' },
+    { to: '/admin/reports', icon: '📈', label: 'Reports' },
+    { to: '/profile/edit', icon: '👤', label: 'Edit Profile' },
+    { to: '/profile/change-password', icon: '🔑', label: 'Change Password' },   
   ];
 
   const clerkLinks = [
-    { to: "/clerk/dashboard", icon: "📊", label: "Dashboard" },
-    { to: "/clerk/record-entry", icon: "➕", label: "Record Entry" },
-    { to: "/clerk/my-entries", icon: "📋", label: "My Entries" },
-    { to: "/clerk/supply-requests", icon: "🚚", label: "Supply Requests" },
+    { to: '/clerk/dashboard', icon: '📊', label: 'Dashboard' },
+    { to: '/clerk/record-entry', icon: '📝', label: 'Record Entry' },
+    { to: '/clerk/my-entries', icon: '📋', label: 'My Entries' },
+    { to: '/clerk/supply-requests', icon: '🚚', label: 'Supply Requests' },
+    { to: '/profile/edit', icon: '👤', label: 'Edit Profile' },
+    { to: '/profile/change-password', icon: '🔑', label: 'Change Password' },   
   ];
 
-  const links =
-    user?.role === "merchant"
-      ? merchantLinks
-      : user?.role === "admin"
-        ? adminLinks
-        : clerkLinks;
+  const links = user?.role === 'merchant' ? merchantLinks
+    : user?.role === 'admin' ? adminLinks
+    : clerkLinks;
 
   const roleColors = {
-    merchant: "bg-purple-600",
-    admin: "bg-blue-600",
-    clerk: "bg-green-600",
+    merchant: 'bg-purple-100 text-purple-700',
+    admin: 'bg-blue-100 text-blue-700',
+    clerk: 'bg-green-100 text-green-700',
   };
 
   return (
-    <div className="h-screen w-64 bg-gray-900 dark:bg-gray-950 text-white flex flex-col fixed left-0 top-0 overflow-y-auto">
-      {/* Logo */}
-      <div className="p-6 border-b border-gray-700 dark:border-gray-800">
+    <div className="h-screen w-64 bg-gray-900 text-white flex flex-col">
+      {/* Logo / Header */}
+      <div className="p-6 border-b border-gray-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-            <span className="text-xl">📦</span>
-          </div>
-          <div>
-            <h1 className="font-bold text-lg">Inventory App</h1>
-            <p className="text-xs text-gray-400">Stock Management</p>
-          </div>
+          <div className="w-9 h-9 bg-indigo-600 rounded-2xl flex items-center justify-center text-xl">📦</div>
+          <h1 className="text-2xl font-bold tracking-tight">LocalShop</h1>
         </div>
       </div>
 
       {/* User Info */}
-      <div className="p-4 border-b border-gray-700 dark:border-gray-800">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-9 h-9 rounded-full ${roleColors[user?.role]} flex items-center justify-center text-sm font-bold`}
-          >
-            {user?.full_name?.charAt(0).toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.full_name}</p>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full ${roleColors[user?.role]}`}
-            >
-              {user?.role}
-            </span>
-          </div>
+      <div className="p-6 border-b border-gray-800 flex items-center gap-3">
+        <div className={`w-10 h-10 flex-shrink-0 rounded-2xl flex items-center justify-center ${roleColors[user?.role] || 'bg-gray-700'} text-xl`}>
+          {user?.full_name?.charAt(0).toUpperCase() || 'U'}
         </div>
-      </div>
-
-      {/* Dark Mode Toggle */}
-      <div className="px-4 py-3 border-b border-gray-700 dark:border-gray-800">
-        <button
-          onClick={toggleDarkMode}
-          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
-        >
-          <span className="text-sm font-medium flex items-center gap-2">
-            {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+        <div>
+          <p className="text-sm font-medium">{user?.full_name || 'User'}</p>
+          <span className={`text-xs px-2 py-0.5 rounded-full ${roleColors[user?.role] || 'bg-gray-700'}`}>
+            {user?.role || 'Guest'}
           </span>
-          <div
-            className={`w-10 h-5 rounded-full relative transition-colors ${darkMode ? "bg-indigo-600" : "bg-gray-600"}`}
-          >
-            <div
-              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${darkMode ? "translate-x-5" : "translate-x-0.5"}`}
-            />
-          </div>
-        </button>
+        </div>
       </div>
 
       {/* Navigation Links */}
@@ -131,8 +88,8 @@ const Sidebar = () => {
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${
                 isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-gray-400 hover:bg-gray-800 dark:hover:bg-gray-700 hover:text-white"
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
               }`
             }
           >
@@ -143,7 +100,7 @@ const Sidebar = () => {
       </nav>
 
       {/* Logout */}
-      <div className="p-4 border-t border-gray-700 dark:border-gray-800">
+      <div className="p-4 border-t border-gray-700">
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-200 w-full text-sm font-medium"

@@ -1,12 +1,10 @@
-import React from "react";
+import React from 'react';
+import EmptyState from './EmptyState';
 
-const Table = ({ columns, data }) => {
+const Table = ({ columns, data, loading = false }) => {
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow overflow-hidden">
-
       <table className="w-full text-left">
-
-        {/* Header */}
         <thead className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm">
           <tr>
             {columns.map((col, index) => (
@@ -17,12 +15,17 @@ const Table = ({ columns, data }) => {
           </tr>
         </thead>
 
-        {/* Body */}
         <tbody className="text-gray-700 dark:text-gray-200 text-sm">
-          {data.length === 0 ? (
+          {loading ? (
             <tr>
-              <td colSpan={columns.length} className="text-center py-6 text-gray-400">
-                No data available
+              <td colSpan={columns.length} className="text-center py-10 text-gray-400">
+                Loading...
+              </td>
+            </tr>
+          ) : data.length === 0 ? (
+            <tr>
+              <td colSpan={columns.length} className="text-center py-10">
+                <EmptyState title="No data available" message="There is nothing to show yet" icon="📭" />
               </td>
             </tr>
           ) : (
@@ -40,9 +43,7 @@ const Table = ({ columns, data }) => {
             ))
           )}
         </tbody>
-
       </table>
-
     </div>
   );
 };
