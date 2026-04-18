@@ -1,136 +1,108 @@
-import React, { useEffect, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { loginUser, clearError } from '../../store/slices/authSlice';
-import { toast } from 'react-toastify';
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { loginUser } from "../../store/slices/authSlice";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, user } = useSelector((state) => state.auth);
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { loading } = useSelector((state) => state.auth);
 
-  const redirectByRole = useCallback((role) => {
-    if (role === 'merchant') navigate('/merchant/dashboard');
-    else if (role === 'admin') navigate('/admin/dashboard');
-    else if (role === 'clerk') navigate('/clerk/dashboard');
-  }, [navigate]);
-
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      redirectByRole(user.role);
-    }
-  }, [user, redirectByRole]);
-
-  // Show error toast
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-      dispatch(clearError());
-    }
-  }, [error, dispatch]);
+  const { register, handleSubmit } = useForm();
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data) => {
-    const result = await dispatch(loginUser(data));
-    if (loginUser.fulfilled.match(result)) {
-      toast.success(`Welcome back! 👋`);
-      redirectByRole(result.payload.user.role);
+    const res = await dispatch(loginUser(data));
+
+    if (res.meta.requestStatus === "fulfilled") {
+      toast.success("Login successful");
+
+      const role = res.payload.user.role;
+      if (role === "merchant") navigate("/merchant/dashboard");
+      else if (role === "admin") navigate("/admin/dashboard");
+      else navigate("/clerk/dashboard");
+    } else {
+      toast.error(res.payload || "Login failed");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+    <div style={styles.page}>
+      <div style={styles.card}>
 
-        {/* Logo / Title */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white text-2xl">📦</span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800">Local Shop</h1>
-          <p className="text-gray-500 mt-1">Sign in to your account</p>
+        {/* Header */}
+        <div style={styles.header}>
+          <h1 style={styles.logo}>📦 LocalShop</h1>
+          <p style={styles.subtitle}>Welcome back 👋</p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
-            </label>
+            <label style={styles.label}>Email</label>
             <input
               type="email"
-              className="input-field"
-              placeholder="you@example.com"
-              {...register('email', {
-                required: 'Email is required',
-                pattern: {
-                  value: /^\S+@\S+\.\S+$/,
-                  message: 'Invalid email address'
-                }
-              })}
+              placeholder="Enter your email"
+              {...register("email")}
+              style={styles.input}
+              required
             />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-            )}
           </div>
 
           {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+          <div style={{ position: "relative" }}>
+            <label style={styles.label}>Password</label>
             <input
-              type="password"
-              className="input-field"
-              placeholder="••••••••"
-              {...register('password', {
-                required: 'Password is required',
-                minLength: {
-                  value: 6,
-                  message: 'Password must be at least 6 characters'
-                }
-              })}
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              {...register("password")}
+              style={styles.input}
+              required
             />
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
-            )}
+
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              style={styles.eye}
+            >
+              {showPassword ? "🙈" : "👁"}
+            </span>
           </div>
 
-          {/* Submit */}
+          {/* Forgot Password */}
+          <div style={styles.forgotWrapper}>
+            <Link to="/forgot-password" style={styles.link}>
+              Forgot password?
+            </Link>
+          </div>
+
+          {/* Button */}
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full py-3 text-center disabled:opacity-50"
+            style={{
+              ...styles.button,
+              opacity: loading ? 0.7 : 1,
+            }}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? "Logging in..." : "Login"}
           </button>
 
         </form>
 
-        {/* Forgot Password Link  */}
-        <div className="text-center mt-4">
-          <button
-            onClick={() => navigate('/forgot-password')}
-            className="text-indigo-600 hover:text-indigo-700 text-sm font-medium hover:underline"
-          >
-            Forgot Password?
-          </button>
-        </div>
+        {/* Register */}
+        <p style={styles.registerText}>
+          Don’t have an account?{" "}
+          <Link to="/register" style={styles.linkStrong}>
+            Create one
+          </Link>
+        </p>
 
-        {/* Register link for merchants - ADDED FROM UPDATES */}
-        <div className="text-center mt-6 text-sm">
-          Don't have an account?{' '}
-          <button
-            onClick={() => navigate('/register')}
-            className="text-indigo-600 hover:text-indigo-700 font-medium underline"
-          >
-            Register here
-          </button>
-        </div>
+        {/* Footer */}
+        <p style={styles.footer}>© 2026 LocalShop</p>
 
       </div>
     </div>
@@ -138,3 +110,94 @@ const Login = () => {
 };
 
 export default Login;
+
+/* =========================
+   STYLES
+========================= */
+const styles = {
+  page: {
+    height: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "linear-gradient(135deg, #eef2ff, #f9fafb)",
+  },
+  card: {
+    width: "100%",
+    maxWidth: "400px",
+    background: "#fff",
+    padding: "32px",
+    borderRadius: "16px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+  },
+  header: {
+    textAlign: "center",
+    marginBottom: "24px",
+  },
+  logo: {
+    margin: 0,
+    fontSize: "26px",
+    fontWeight: "700",
+  },
+  subtitle: {
+    marginTop: "6px",
+    fontSize: "14px",
+    color: "#6b7280",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "18px",
+  },
+  label: {
+    fontSize: "13px",
+    fontWeight: "600",
+    marginBottom: "4px",
+  },
+  input: {
+    width: "100%",
+    padding: "12px",
+    borderRadius: "10px",
+    border: "1px solid #d1d5db",
+  },
+  eye: {
+    position: "absolute",
+    right: "12px",
+    top: "38px",
+    cursor: "pointer",
+  },
+  forgotWrapper: {
+    textAlign: "right",
+    marginTop: "-10px",
+  },
+  link: {
+    fontSize: "13px",
+    color: "#6366f1",
+    textDecoration: "none",
+  },
+  linkStrong: {
+    color: "#4f46e5",
+    fontWeight: "600",
+    textDecoration: "none",
+  },
+  button: {
+    marginTop: "10px",
+    padding: "12px",
+    borderRadius: "10px",
+    border: "none",
+    background: "linear-gradient(135deg, #4f46e5, #6366f1)",
+    color: "white",
+    fontWeight: "600",
+  },
+  registerText: {
+    marginTop: "16px",
+    textAlign: "center",
+    fontSize: "13px",
+  },
+  footer: {
+    marginTop: "20px",
+    textAlign: "center",
+    fontSize: "12px",
+    color: "#9ca3af",
+  },
+};
