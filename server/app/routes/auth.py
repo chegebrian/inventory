@@ -17,7 +17,7 @@ auth_bp = Blueprint('auth', __name__)
 # =============================================
 @auth_bp.route('/register-merchant', methods=['POST'])
 def register_merchant():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
 
     missing = validate_required_fields(data, ['full_name', 'email', 'password', 'store_name'])
     if missing:
@@ -82,7 +82,7 @@ def register_merchant():
 # =============================================
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     token = data.get('token')
 
     if not token:
@@ -111,7 +111,7 @@ def register():
 # =============================================
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     email = data.get('email')
     password = data.get('password')
 
@@ -156,7 +156,7 @@ def invite():
     if current_user.role not in ['merchant', 'admin']:
         return jsonify({'error': 'Only merchant or admin can send invites'}), 403
 
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     email = data.get('email')
     role = data.get('role')
     store_id = data.get('store_id')
@@ -289,7 +289,7 @@ def delete_user(user_id):
 # =============================================
 @auth_bp.route('/forgot-password', methods=['POST'])
 def forgot_password():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     email = data.get('email')
     if not email:
         return jsonify({'error': 'Email is required'}), 400
@@ -314,7 +314,7 @@ def forgot_password():
 # =============================================
 @auth_bp.route('/reset-password', methods=['POST'])
 def reset_password():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     token = data.get('token')
     new_password = data.get('password')
 
@@ -342,7 +342,7 @@ def change_password():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
 
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     current_password = data.get('current_password')
     new_password = data.get('new_password')
 
@@ -370,7 +370,7 @@ def update_profile():
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     if data.get('full_name'):
         user.full_name = data['full_name']
     if 'phone_number' in data:

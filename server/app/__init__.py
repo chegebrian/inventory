@@ -20,6 +20,14 @@ def create_app(config_name='default'):
     from app.config import config_by_name
     app.config.from_object(config_by_name[config_name])
 
+    app.config['MAIL_SERVER'] = 'smtp.sendgrid.net'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')  # should be "apikey"
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')  # your API key
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
@@ -27,9 +35,17 @@ def create_app(config_name='default'):
 
     CORS(
         app,
-        resources={r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}},
+        resources={
+            r"/api/*": {
+                "origins": [
+                    "http://localhost:5173",
+                    "http://127.0.0.1:5173"
+                ]
+            }
+        },
         supports_credentials=True,
-        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization"]
     )
 
     from app.routes.auth import auth_bp
