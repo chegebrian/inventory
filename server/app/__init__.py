@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -5,7 +7,6 @@ from flask_jwt_extended import JWTManager
 from flask_mailman import Mail
 from flask_cors import CORS
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
@@ -14,9 +15,13 @@ migrate = Migrate()
 jwt = JWTManager()
 mail = Mail()
 
+
 def create_app(config_name='default'):
     app = Flask(__name__)
 
+    # ================================
+    # LOAD CONFIG
+    # ================================
     from app.config import config_by_name
     app.config.from_object(config_by_name[config_name])
 
@@ -33,6 +38,9 @@ def create_app(config_name='default'):
     jwt.init_app(app)
     mail.init_app(app)
 
+    # ================================
+    # ✅ FIXED CORS (IMPORTANT)
+    # ================================
     CORS(
         app,
         resources={
@@ -48,6 +56,9 @@ def create_app(config_name='default'):
         allow_headers=["Content-Type", "Authorization"]
     )
 
+    # ================================
+    # REGISTER BLUEPRINTS
+    # ================================
     from app.routes.auth import auth_bp
     from app.routes.stores import stores_bp
     from app.routes.products import products_bp
