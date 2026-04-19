@@ -31,33 +31,46 @@ const AdminClerks = () => {
   const sendInvite = async (e) => {
     e.preventDefault();
     if (!inviteEmail) return toast.error('Email is required');
+
     try {
       await api.post('/auth/invite', {
         email: inviteEmail,
         role: 'clerk',
         store_id: user?.store_id
       });
+
       toast.success(`Invite sent to ${inviteEmail}`);
       setInviteEmail('');
       fetchClerks();
+
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to send invite');
+      if (err.response?.status === 409) {
+        toast.error('User already exists');
+      } else {
+        toast.error(err.response?.data?.error || 'Failed to send invite');
+      }
     }
   };
 
+  // ✅ FIXED HERE (PATCH → PUT)
   const toggleActive = async (clerk) => {
     try {
-      await api.patch(`/auth/users/${clerk.id}/toggle-active`);
+      await api.put(`/auth/users/${clerk.id}/toggle-active`);
+
       toast.success(clerk.is_active ? 'Clerk suspended' : 'Clerk activated');
+
       fetchClerks();
     } catch (err) {
+      console.error(err);
       toast.error('Failed to update status');
     }
   };
 
   const handleDelete = async (clerk) => {
     if (!window.confirm(`Delete clerk "${clerk.full_name}"?`)) return;
+
     setDeletingId(clerk.id);
+
     try {
       await api.delete(`/auth/users/${clerk.id}`);
       toast.success('Clerk deleted successfully');
@@ -88,9 +101,13 @@ const AdminClerks = () => {
     ),
     actions: (
       <div className="flex gap-3">
-        <button onClick={() => toggleActive(clerk)} className="text-blue-600 hover:text-blue-700 text-sm">
+        <button
+          onClick={() => toggleActive(clerk)}
+          className="text-blue-600 hover:text-blue-700 text-sm"
+        >
           {clerk.is_active ? 'Suspend' : 'Activate'}
         </button>
+
         <button
           onClick={() => handleDelete(clerk)}
           disabled={deletingId === clerk.id}
@@ -107,6 +124,7 @@ const AdminClerks = () => {
       <div className="card">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">All Clerks</h2>
+
           <form onSubmit={sendInvite} className="flex gap-3">
             <input
               type="email"
@@ -116,7 +134,10 @@ const AdminClerks = () => {
               onChange={(e) => setInviteEmail(e.target.value)}
               required
             />
-            <button type="submit" className="btn-primary">Send Invite</button>
+
+            <button type="submit" className="btn-primary">
+              Send Invite
+            </button>
           </form>
         </div>
 
