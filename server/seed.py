@@ -163,20 +163,21 @@ def seed():
 
         entries = []
 
-        for sp in store_products:
-            entries.append(
-                InventoryEntry(
-                    store_product_id=sp.id,
-                    clerk_id=clerk1.id,
-                    quantity_received=random.randint(50, 300),
-                    quantity_in_stock=random.randint(20, 250),
-                    quantity_spoilt=random.randint(0, 30),
-                    buying_price=random.randint(50, 200),
-                    selling_price=random.randint(80, 350),
-                    payment_status=random.choice(["paid", "pending"]),
-                    recorded_at=datetime.utcnow()
-                )
+    for sp in store_products:
+        entries.append(
+            InventoryEntry(
+                store_id=sp.store_id,        # ✅ 
+                product_id=sp.product_id,    # ✅ 
+                clerk_id=clerk1.id,
+                quantity_received=random.randint(50, 300),
+                quantity_in_stock=random.randint(20, 250),
+                quantity_spoilt=random.randint(0, 30),
+                buying_price=random.randint(50, 200),
+                selling_price=random.randint(80, 350),
+                payment_status=random.choice(["paid", "pending"]),
+                recorded_at=datetime.utcnow()
             )
+        )
 
         db.session.add_all(entries)
         db.session.commit()
