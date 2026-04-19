@@ -21,6 +21,8 @@ def seed():
     with app.app_context():
 
         print("Clearing existing data...")
+        db.drop_all()
+        db.create_all()
 
         # ✅ Delete in correct order (children before parents)
         SupplyRequest.query.delete()
