@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import DashboardLayout from '../../components/layout/DashboardLayout';
-import { toast } from 'react-toastify';
-import api from '../../utils/api';
-import Table from '../../components/common/Table';
+import React, { useEffect, useState } from "react";
+import DashboardLayout from "../../components/layout/DashboardLayout";
+import { toast } from "react-toastify";
+import api from "../../utils/api";
+import Table from "../../components/common/Table";
 
 const AdminInventory = () => {
   const [entries, setEntries] = useState([]);
@@ -15,41 +15,58 @@ const AdminInventory = () => {
   const fetchEntries = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/inventory/');
+      const res = await api.get("/inventory/");
+
+      console.log("Inventory response:", res.data);
+
       setEntries(res.data.entries || []);
-    } catch {
-      toast.error('Failed to load inventory entries');
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load inventory entries");
     } finally {
       setLoading(false);
     }
   };
 
   const togglePayment = async (entry) => {
-    const newStatus = entry.payment_status === 'paid' ? 'unpaid' : 'paid';
+    const newStatus = entry.payment_status === "paid" ? "unpaid" : "paid";
     try {
-      await api.patch(`/inventory/${entry.id}/payment`, { payment_status: newStatus });
+      await api.patch(`/inventory/${entry.id}/payment`, {
+        payment_status: newStatus,
+      });
       toast.success(`Marked as ${newStatus}`);
       fetchEntries();
     } catch {
-      toast.error('Failed to update payment status');
+      toast.error("Failed to update payment status");
     }
   };
 
   const columns = [
-    { header: 'Product', accessor: 'product_name' },
-    { header: 'Quantity', accessor: 'quantity_received' },
-    { header: 'Payment Status', accessor: 'payment_status' },
-    { header: 'Actions', accessor: 'actions' },
+    { header: "Product", accessor: "product_name" },
+    { header: "Quantity", accessor: "quantity_received" },
+    { header: "Payment Status", accessor: "payment_status" },
+    { header: "Actions", accessor: "actions" },
   ];
 
-  const tableData = entries.map(entry => ({
+  const tableData = entries.map((entry) => ({
     product_name: entry.product_name,
+    store_name: entry.store_name,
     quantity_received: entry.quantity_received,
+    quantity_in_stock: entry.quantity_in_stock,
+    quantity_spoilt: entry.quantity_spoilt,
+
     payment_status: (
-      <span className={`px-3 py-1 text-xs rounded-full ${entry.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+      <span
+        className={`px-3 py-1 text-xs rounded-full ${
+          entry.payment_status === "paid"
+            ? "bg-green-100 text-green-700"
+            : "bg-red-100 text-red-700"
+        }`}
+      >
         {entry.payment_status}
       </span>
     ),
+
     actions: (
       <button
         onClick={() => togglePayment(entry)}
@@ -57,7 +74,7 @@ const AdminInventory = () => {
       >
         Toggle Payment
       </button>
-    )
+    ),
   }));
 
   return (

@@ -126,42 +126,99 @@ def login():
 @auth_bp.route('/invite', methods=['POST'])
 @jwt_required()
 def invite():
-    current_user = User.query.get(get_jwt_identity())
+    try:
+        current_user = User.query.get(get_jwt_identity())
 
-    if current_user.role not in ['merchant', 'admin']:
-        return jsonify({'error': 'Unauthorized'}), 403
+        if not current_user:
+            return jsonify({'error': 'User not found'}), 404
 
+        if current_user.role not in ['merchant', 'admin']:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        data = request.get_json(silent=True) or {}
+        email = data.get('email')
+        role = data.get('role')
+
+        if not email or not role:
+            return jsonify({'error': 'Email and role required'}), 400
+
+        if User.query.filter_by(email=email).first():
+            return jsonify({'error': 'User already exists'}), 409
+
+        # Generate invite token
+        token = secrets.token_urlsafe(32)
+        expiry = datetime.utcnow() + timedelta(hours=48)
+
+        # Save invited user
+        new_user = User(
+            email=email,
+            role=role,
+            invite_token=token,
+            invite_token_expiry=expiry,
+            is_active=True,
+            is_verified=False,
+            store_id=current_user.store_id
+        )
+
+        db.session.add(new_user)
+        db.session.commit()
+
+        # Frontend link
+        invite_link = f"http://localhost:5173/register?token={token}"
+
+        # ✅ Send email (SendGrid API version)
+        email_sent = send_invite_email(
+            email,
+            invite_link,
+            role,
+            "LocalShop"
+        )
+
+        if not email_sent:
+            return jsonify({
+                'message': 'User created but email failed to send'
+            }), 201
+
+        return jsonify({'message': 'Invite sent successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@auth_bp.route('/register', methods=['POST'])
+def register():
     data = request.get_json(silent=True) or {}
-    email = data.get('email')
-    role = data.get('role')
 
-    if not email or not role:
-        return jsonify({'error': 'Email and role required'}), 400
+    token = request.args.get('token') or data.get('token')
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({'error': 'User already exists'}), 409
+    if not token:
+        return jsonify({'error': 'Missing invite token'}), 400
 
-    token = secrets.token_urlsafe(32)
-    expiry = datetime.utcnow() + timedelta(hours=48)
+    user = User.query.filter_by(invite_token=token).first()
 
-    new_user = User(
-        email=email,
-        role=role,
-        invite_token=token,
-        invite_token_expiry=expiry,
-        is_active=True,
-        is_verified=False,
-        store_id=current_user.store_id
-    )
+    if not user:
+        return jsonify({'error': 'Invalid token'}), 400
 
-    db.session.add(new_user)
+    if not user.invite_token_expiry or user.invite_token_expiry < datetime.utcnow():
+        return jsonify({'error': 'Expired token'}), 400
+
+    if not data.get('password'):
+        return jsonify({'error': 'Password required'}), 400
+
+    user.full_name = data.get('full_name')
+    user.phone_number = data.get('phone_number')
+
+    user.password_hash = bcrypt.hashpw(
+        data['password'].encode(),
+        bcrypt.gensalt()
+    ).decode('utf-8')
+
+    user.is_verified = True
+    user.invite_token = None
+    user.invite_token_expiry = None
+
     db.session.commit()
 
-    invite_link = f"http://localhost:3000/register?token={token}"
-    send_invite_email(email, invite_link, role, "LocalShop")
-
-    return jsonify({'message': 'Invite sent'}), 200
-
+    return jsonify({'message': 'Registration successful'}), 200
 
 # =============================================
 # GET USERS

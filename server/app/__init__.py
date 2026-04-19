@@ -1,14 +1,14 @@
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_mailman import Mail
 from flask_cors import CORS
-from dotenv import load_dotenv
-
-load_dotenv()
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -18,20 +18,24 @@ mail = Mail()
 
 def create_app(config_name='default'):
     app = Flask(__name__)
+    app.config.update(
+        # ================= SECURITY =================
+        SECRET_KEY=os.getenv("SECRET_KEY", "dev-secret"),
+        JWT_SECRET_KEY=os.getenv("JWT_SECRET_KEY", "dev-jwt"),
 
-    # ================================
-    # LOAD CONFIG
-    # ================================
-    from app.config import config_by_name
-    app.config.from_object(config_by_name[config_name])
+        # ================= DB =================
+        SQLALCHEMY_DATABASE_URI=os.getenv('DATABASE_URL', 'sqlite:///app.db'),
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
 
-    app.config['MAIL_SERVER'] = 'smtp.sendgrid.net'
-    app.config['MAIL_PORT'] = 587
-    app.config['MAIL_USE_TLS'] = True
-
-    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')  # should be "apikey"
-    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')  # your API key
-    app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+        # ================= MAIL =================
+        MAIL_SERVER='smtp.sendgrid.net',
+        MAIL_PORT=587,
+        MAIL_USE_TLS=True,
+        MAIL_USE_SSL=False,
+        MAIL_USERNAME=os.getenv('MAIL_USERNAME'),
+        MAIL_PASSWORD=os.getenv('MAIL_PASSWORD'),
+        MAIL_DEFAULT_SENDER=os.getenv('MAIL_DEFAULT_SENDER')
+    )
 
     db.init_app(app)
     migrate.init_app(app, db)

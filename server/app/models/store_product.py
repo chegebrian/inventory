@@ -12,8 +12,6 @@ class StoreProduct(db.Model):
     # Relationships
     store = db.relationship('Store', back_populates='store_products')
     product = db.relationship('Product', back_populates='store_products')
-    inventory_entries = db.relationship('InventoryEntry', back_populates='store_product', cascade='all, delete-orphan')
-    supply_requests = db.relationship('SupplyRequest', back_populates='store_product', cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
