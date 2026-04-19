@@ -16,6 +16,16 @@ from datetime import datetime, timedelta
 
 auth_bp = Blueprint('auth', __name__)
 
+
+
+@auth_bp.route('/health', methods=['GET'])
+def health():
+    return jsonify({
+        'status': 'ok',
+        'service': 'auth',
+        'message': 'Auth service healthy ✅'
+    }), 200
+
 # =============================================
 # MERCHANT SELF-REGISTRATION
 # =============================================
