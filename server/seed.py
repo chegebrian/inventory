@@ -22,12 +22,13 @@ def seed():
 
         print("Clearing existing data...")
 
+        # ✅ Delete in correct order (children before parents)
         SupplyRequest.query.delete()
         InventoryEntry.query.delete()
         StoreProduct.query.delete()
+        Store.query.delete()    # ✅ stores before users (stores references users)
+        User.query.delete()     # ✅ users last
         Product.query.delete()
-        User.query.delete()
-        Store.query.delete()
         db.session.commit()
 
         # =====================================
