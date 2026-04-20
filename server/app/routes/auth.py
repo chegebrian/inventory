@@ -174,7 +174,7 @@ def invite():
         db.session.commit()
 
         # Frontend link
-        invite_link = f"http://localhost:5173/register?token={token}"
+        invite_link = f"https://inventory-rho-dun.vercel.app/register?token={token}"
 
         # ✅ Send email (SendGrid API version)
         email_sent = send_invite_email(
